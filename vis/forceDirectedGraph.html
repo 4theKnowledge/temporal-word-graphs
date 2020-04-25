@@ -1,0 +1,268 @@
+<!DOCTYPE html><meta charset="utf-8">
+<html>
+    <head>
+        <title>Temporal Word Graph Visualisation</title>
+
+        <link rel="stylesheet" type="text/css" href="../js/dc/dc.css">
+
+
+
+        <script src="../js/d3/d3.min.js" tpye="text/JavaScript"></script>
+        <script src="../js/crossfilter/crossfilter.js" type="text/JavaScript"></script>
+        <script src="../js/dc/dc.js" type="text/JavaScript"></script>
+    </head>
+    <body>
+        <div id="controls">
+            <!-- Clickable button -->
+            <button type="button" onClick="changeLinkStrokeColor('red')">Turn Links Red</button>
+            <button type="button" onClick="changeLinkStrokeColor('green')">Turn Links Green</button>
+            
+            <br>
+            <button type="button" onClick="select(2018)">2018</button>
+            <button type="button" onClick="select(2019)">2019</button>
+            <button type="button" onClick="select(2020)">2020</button>
+            
+        </div>
+        <div id="chartOutputs">
+            
+            <div id="line">
+
+            </div>
+            
+            
+            <svg class="timeline" style="width:100%; height:0px">
+            
+            
+            </svg>
+
+            <svg class="directedGraph" style="width:100%;height:400px">
+            </svg>
+        </div>
+
+            <script>
+                    var barChart = dc.barChart('#line');
+
+            </script>
+
+
+            <script type="text/JavaScript">
+
+                var nodes = [ 
+                                { id: "mammal", year: 2018, label: "Mammals", level: 1 },
+                                { id: "dog"   , year: 2018, label: "Dogs"   , level: 2 },
+                                { id: "cat"   , year: 2018, label: "Cats"   , level: 2 },
+                                { id: "fox"   , year: 2018, label: "Foxes"  , level: 2 }, 
+                                { id: "elk"   , year: 2018, label: "Elk"    , level: 2 },
+                                { id: "insect", year: 2019, label: "Insects", level: 1 },
+                                { id: "ant"   , year: 2019, label: "Ants"   , level: 2 },
+                                { id: "bee"   , year: 2019, label: "Bees"   , level: 2 },  
+                                { id: "fish"  , year: 2020, label: "Fish"   , level: 1 },
+                                { id: "carp"  , year: 2020, label: "Carp"   , level: 2 },
+                                { id: "pike"  , year: 2020, label: "Pikes"  , level: 2 } 
+                                ]
+
+                var links = [
+                                { target: "mammal", source: "dog" , strength: 0.7 },
+                                { target: "mammal", source: "cat" , strength: 0.7 },
+                                { target: "mammal", source: "fox" , strength: 0.7 },
+                                { target: "mammal", source: "elk" , strength: 0.7 },
+                                { target: "insect", source: "ant" , strength: 0.7 },
+                                { target: "insect", source: "bee" , strength: 0.7 },
+                                { target: "fish"  , source: "carp", strength: 0.7 },
+                                { target: "fish"  , source: "pike", strength: 0.7 },
+                                { target: "cat"   , source: "elk" , strength: 0.1 },
+                                { target: "carp"  , source: "ant" , strength: 0.1 },
+                                { target: "elk"   , source: "bee" , strength: 0.1 },
+                                { target: "dog"   , source: "cat" , strength: 0.1 },
+                                { target: "fox"   , source: "ant" , strength: 0.1 },
+                                { target: "pike"  , source: "dog" , strength: 0.1 }
+                                ]
+
+                const width = '400';
+                const height = '400';
+                
+                const simulation = d3.forceSimulation()
+                                    .force('charge', d3.forceManyBody().strength(-20))
+                                    .force('center', d3.forceCenter(width / 2, height /2))
+
+                const nodeRadius = 12
+
+                function getNodeColor(node) {return node.level === 1 ? 'red' : 'gray'}
+
+
+                const linkElements = d3.selectAll('svg.directedGraph')
+                                        .append('g')
+                                        .attr("class", "link")
+                                        .selectAll('line')
+                                        .data(links)
+                                        .enter()
+                                        .append('line')
+                                        .attr('stroke-width', 2)
+                                        .attr('stroke', 'black')
+
+                const nodeElements = d3.selectAll('svg.directedGraph')
+                                        .append('g')
+                                        .attr("class", "node")
+                                        .selectAll('circle')
+                                        .data(nodes)
+                                        .enter()
+                                        .append('circle')
+                                        .attr('r', nodeRadius)
+                                        .attr('fill', getNodeColor)
+                
+                const nodeText = d3.selectAll('svg.directedGraph')
+                                        .append('g')
+                                        .attr("class", "node-text")
+                                        .selectAll('text')
+                                        .data(nodes)
+                                        .enter()
+                                        .append('text')
+                                        .text(node => node.label)
+                                        .attr('font-size', 10)
+                                        .attr('dx', 0)
+                                        .attr('dy', 0)
+
+                const linkText = d3.selectAll('svg.directedGraph')
+                                    .append('g')
+                                    .attr("class", "link-text")
+                                    .selectAll('text')
+                                    .data(links)
+                                    .enter()
+                                    .append('text')
+                                    .text(link => link.strength)
+                                    .attr('font-size', 10)
+                                    .attr('dx', 0)
+                                    .attr('dy', 0)
+
+                simulation.nodes(nodes).on('tick', () => {
+                    linkElements
+                        .attr('x1', link => link.source.x)
+                        .attr('y1', link => link.source.y)
+                        .attr('x2', link => link.target.x)
+                        .attr('y2', link => link.target.y)
+                    linkText
+                        .attr("x", link => (link.source.x + link.target.x)/2)
+                        .attr("y", link => (link.source.y + link.target.y)/2)
+                    nodeElements
+                        .attr("cx", node => node.x)
+                        .attr("cy", node => node.y)
+                        nodeText
+                        .attr("x", node => node.x - nodeRadius)
+                        .attr("y", node => node.y)
+                })
+
+                simulation.force('link', d3.forceLink()
+                            .id(link => link.id)
+                            .strength(link => link.strength))
+
+                simulation.force('link').links(links)
+            
+
+                const dragDrop = d3.drag()
+                                    .on('start', node => {
+                                        node.fx = node.x
+                                        node.fy = node.y
+                                    })
+                                    .on('drag', node => {
+                                        simulation.alphaTarget(0.7).restart()
+                                        node.fx = d3.event.x
+                                        node.fy = d3.event.y
+                                    })
+                                    .on('end', node => {
+                                        if (!d3.event.active) {
+                                        simulation.alphaTarget(0)
+                                        }
+                                        node.fx = null
+                                        node.fy = null
+                                    })
+            
+                nodeElements.call(dragDrop);
+              
+
+                function filterGraph(nodes, links, time) {
+                    // Filters graph based on time attribute of nodes.
+                    // Cant add back nodes that were removed if trying to refilter...
+
+                    simulation.stop();
+                    var originalNodes = nodes;
+                    var originalLinks = links;
+
+                    console.log(nodes);
+
+                    // Get filtered nodes
+                    var filteredNodes = originalNodes.filter(function (d, i){ return d.year == time;})
+                    console.log(filteredNodes);
+                    
+                    // Get filtered links based on node index
+                    var filteredLinks = originalLinks.filter(function (d) {
+                        return filteredNodes.indexOf(d.source) > -1 &&
+                                filteredNodes.indexOf(d.target) > -1;
+                                });
+                    
+                    // replace nodes with filtered list; opaque transition
+                    d3.selectAll("g.node")
+                        .selectAll("circle")
+                        .data(filteredNodes, function (d) {return d.id})
+                        .exit()
+                        .transition()
+                        .duration(4000)
+                        .style("opacity", 0)
+                        .remove();
+
+                    // replace links with filtered
+                    d3.selectAll("g.link")
+                        .selectAll("line")
+                        .data(filteredLinks)
+                        .exit()
+                        .transition()
+                        .duration(3000)
+                        .style("opacity", 0)
+                        .remove();
+                    
+                    // replace node text based on filtered data
+                    d3.selectAll("g.node-text")
+                                .selectAll("text")
+                                .data(filteredNodes)
+                                .exit()
+                                .transition()
+                                .duration(3000)
+                                .style("opacity", 0)
+                                .remove();
+
+                    // replace link text based on filtered data
+                    d3.selectAll("g.link-text")
+                                .selectAll("text")
+                                .data(filteredLinks)
+                                .exit()
+                                .transition()
+                                .duration(3000)
+                                .style("opacity", 0)
+                                .remove();
+                        
+
+                    simulation.nodes(filteredNodes);
+                    simulation.force("link").links(filteredLinks);
+                    simulation.alpha(1).restart();
+                };
+
+            </script>
+
+            <script>
+                var changeLinkStrokeColor = function(color){
+                    d3.selectAll("svg.directedGraph")
+                        .selectAll("g")
+                        .selectAll("line")
+                        .style("stroke", color)
+                    }
+
+                var callGraph = function() {
+                    renderGraph(nodes, links)
+                    }
+
+                var select = function(time) {
+                    filterGraph(nodes, links, time)
+                    }
+            </script>
+
+    </body>
+</html>
