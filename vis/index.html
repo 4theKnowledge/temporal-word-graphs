@@ -11,9 +11,7 @@
     <body>
 
         <div>
-            <svg>
-                <text x="0" y="15" fill="black"></text>
-            </svg>
+            <svg id='viz'></svg>
         </div>
 
 
@@ -22,44 +20,106 @@
                 // d3 v5 now works on promises
                 // see: http://datawanderings.com/2018/08/15/d3-js-v5-promise-syntax-examples/
                 // Note: graphData is a list on JSON objects.
-                var data = d3.json("graphData.json").then(function(data) {
-                    return data
-                });
+                // var data = d3.json("graphData.json").then(function(data) {
+                //     return data
+                // });
 
                 // Need to format the data
                 // str to date: https://stackoverflow.com/questions/53046421/d3-time-string-convert-to-date
                 // https://github.com/d3/d3-time-format
-                var formatTime = d3.timeParse("%d-%m-%Y")
-
-
+                // var formatTime = d3.timeParse("%d-%m-%Y")
 
                 // data.then(function(data) {data.forEach((d) => 
                 //     console.log(d.uid, formatTime(d.creationdate)));});
 
 
-                var uidArray = data.then(function(value) {
-                    return Promise.all(value.map(function(results){
-                        return [results.uid];
-                    }))
+                // var uidArray = data.then(function(value) {
+                //     return Promise.all(value.map(function(results){
+                //         return [results.uid];
+                //     }))
+                // });
+
+
+                // uidArray.then(function(data) {
+                //     return d3.select("body")
+                //             .append("p")
+                //             .text(data);
+                // });
+
+                // console.log(uidArray);
+
+
+                // var nodeArray = data.then(function(value) {
+                //     return Promise.all(value.map(function(results){
+                //         return [results.nodes];
+                //     }));
+                // });
+
+                // console.log(nodeArray)
+
+
+                //https://bl.ocks.org/mapio/53fed7d84cd1812d6a6639ed7aa83868
+                
+                var width = 800;
+                var height = 600;
+                var color = d3.scaleOrdinal(d3.schemeCategory10);
+
+                d3.json("graphData.json").then(function(graph) {
+
+                    console.log(graph);
+
+                    // filter JSON by creationdate:
+                    graph.filter(function (entry) {
+                        return graph.nodes.
+                    })
+
+                    var nodesList = []
+                    var linksList = []
+                    
+                    // Combine sub-word graphs
+                    // nodes
+                    graph.forEach(function(entry) {
+                        entry.nodes.forEach(function(element) {  nodesList.push(element)})
+                        entry.links.forEach(function(element) {  linksList.push(element)});
+                    });
+
+                    // re-index graph for graph construction
+                    var graph = {"nodes": [], "links": []}
+
+                    // indexing nodes list
+                    for (const [index, element] of nodesList.entries()) {
+                            element['index'] = index;
+                            // console.log(element);
+                            graph["nodes"].push(element);
+                        };
+
+                    // indexing links list
+                    for (const [index, element] of linksList.entries()) {
+                            element['index'] = index;
+                            // console.log(element);
+                            graph["links"].push(element);
+                        };
+
+
+                    // var graph = graph[0]; // use first entry for development.
+                    console.log(graph);
+
+                    var label = {
+                        'nodes': [],
+                        'links': []
+                    };
+
+                    graph.nodes.forEach(function(d, i) {
+                        label.nodes.push({node: d});
+                        label.nodes.push({node: d});
+                        label.links.push({
+                            source: i * 2,
+                            target: i*2 +1
+                        });
+                    });
+
                 });
 
-
-                uidArray.then(function(data) {
-                    return d3.select("body")
-                            .append("p")
-                            .text(data);
-                });
-
-                console.log(uidArray);
-
-
-                var nodeArray = data.then(function(value) {
-                    return Promise.all(value.map(function(results){
-                        return [results.nodes];
-                    }));
-                });
-
-                console.log(nodeArray)
 
             </script>
 
