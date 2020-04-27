@@ -1,0 +1,128 @@
+<!-- https://bl.ocks.org/vikkya/75bda04cd0c00e49cbda6cfee8d97aba -->
+
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <title>Time series</title>
+
+    <script src="https://d3js.org/d3.v4.min.js"></script>
+
+</head>
+    <body>
+        <h2>Filter Test</h2>
+        <div id="meta"></div>
+    </body>
+
+    <script>
+
+        var margin = {top: 20, right: 20, bottom: 70, left: 40},
+            width = 800 - margin.left - margin.right,
+            height = 200 - margin.top - margin.bottom;
+        
+        // Parse the date / time
+        var	parseDate = d3.isoParse
+
+        //
+        var timeFormat = d3.timeFormat("%B, %Y")
+        
+        var x = d3.scaleBand().rangeRound([0, width], .05).padding(0.1);
+        
+        var y = d3.scaleLinear().range([height, 0]);
+        
+        var xAxis = d3.axisBottom()
+                        .scale(x)
+                        .tickFormat(d3.timeFormat("%b %Y"));
+        
+        var yAxis = d3.axisLeft()
+                        .scale(y)
+                        .ticks(10);
+        
+        var svg = d3.select("body").append("svg")
+                    .attr("width", width + margin.left + margin.right)
+                    .attr("height", height + margin.top + margin.bottom)
+                    .append("g")
+                    .attr("transform",
+                        "translate(" + margin.left + "," + margin.top + ")");
+
+        
+        d3.csv("bar-data.csv", function(error, data) {
+        
+            data.forEach(function(d) {
+                d.date = parseDate(d.date);
+                d.value = +d.value; // sums value
+            });
+        
+          x.domain(data.map(function(d) { return d.date; }));
+          y.domain([0, d3.max(data, function(d) { return d.value; })]);
+        
+          svg.append("g")
+                .attr("class", "x axis")
+                .attr("transform", "translate(0," + height + ")")
+                .call(xAxis.ticks(null).tickSize(0))
+                .selectAll("text")
+                .style("text-anchor", "middle")
+        
+          svg.append("g")
+              .attr("class", "y axis")
+              .call(yAxis.ticks(null).tickSize(0))
+            .append("text")
+              .attr("y", 6)
+              .style("text-anchor", "middle")
+              .text("Value");
+        
+          svg.selectAll("bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("x", function(d) { return x(d.date); })
+                .attr("width", x.bandwidth())
+                .attr("y", function(d) { return y(d.value); })
+                .attr("height", function(d) { return height - y(d.value); })
+                .on("mouseover", function(d) { 
+                    // d3.select("#meta").html('Date selected: ' + timeFormat(d.date));
+                    d3.select(this).attr("fill","gray");
+                    })
+                .on("mouseout", function(d, i) {
+                    d3.select(this).attr("fill",'black')})
+                .on("click", function(d) { d3.select("#meta").html('Date selected: ' + timeFormat(d.date))});
+
+        var table = d3.select('body').append('table')
+                        .style('border-collapse', 'collapse')
+                        .style('border', '2px black solid');
+
+        // headers
+        // console.log(d3.keys(data[0]));
+        table.append("thead").append("tr")
+            .selectAll("th")
+            .data(d3.keys(data[0]))
+            .enter().append("th")
+            .text(function(d) { return d; })
+            .style("border", "1px black solid")
+            .style("padding", "5px")
+            .style("background-color", "lightgray")
+            .style("font-weight", "bold")
+            .style("text-transform", "uppercase");
+            
+        // data
+        console.log(data);
+        table.append("tbody")
+            .selectAll("tr")
+            .data(data)
+            .enter().append("tr")
+            .selectAll("td")
+            .data(function(d) {return d;})
+            .enter().append("td")
+            .style("border", "1px black solid")
+            .style("padding", "5px")
+            .on("mouseover", function(){d3.select(this).style("background-color", "powderblue");})
+            .on("mouseout", function(){d3.select(this).style("background-color", "white");})
+            .text(function(d){return d;})
+            .style("font-size", "12px");
+                    
+        });
+        </script>
+</html>

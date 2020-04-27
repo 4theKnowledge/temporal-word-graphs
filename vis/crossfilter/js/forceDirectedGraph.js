@@ -1,5 +1,5 @@
 // d3 v4 FDG: https://bl.ocks.org/heybignick/3faf257bbbbc7743bb72310d03b86ee8
-
+// Need to figure out how to size this correctly. Can't seem to update the SVG container.
 function forceDirectedGraph() {
 
     var margin = { top: 20, right: 20, bottom: 20, left: 20},
@@ -16,12 +16,24 @@ function forceDirectedGraph() {
     function chart(selection) {
         selection.each(function(data) {
 
-            console.log('Inside FDG Chart');
-            console.log('W ' + width + ' - H ' + height)
-            console.log(data);
-            console.log(selection);
+            // console.log('Inside FDG Chart');
+            // console.log('W ' + width + ' - H ' + height)
+            // console.log(data);
 
-            // d3.select(this).select("#forcegraph").attr("width", width).attr("height", height)
+            var innerWidth = width - margin.left - margin.right;
+            var innerHeight = height - margin.top - margin.bottom;
+
+            // console.log('iW: ' + innerWidth + ' iH: ' + innerHeight);
+
+            // select the svg element, if it exists
+            // var svg = d3.select(this).selectAll("svg").data([data]);
+
+            // otherwise, create the skeletal chart
+            // var svgEnter = svg.enter().append("svg");
+            
+            // svg.merge(svgEnter).attr("width", innerWidth)
+            //                     .attr("height", innerHeight);
+
 
             // 'this' refers to the selection
             var link = d3.select(this)
@@ -31,7 +43,8 @@ function forceDirectedGraph() {
                         .data(data.links)
                         .enter()
                         .append("line")
-                        .attr("stroke-width", function(d) { return Math.sqrt(d.value); });
+                        .attr("stroke-width", function(d) { return Math.sqrt(d.value); })
+                        .attr("stroke", "gray");
 
             var node = d3.select(this)
                         .append("g")
